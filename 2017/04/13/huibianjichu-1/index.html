@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1">
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+  <meta name="description" content="寄存器-1"/>
+
+
+
+
+
+
+
+
+  <link rel="alternate" href="/default" title="phil's  blog">
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.png?v=1.1" />
+
+
+
+<link rel="canonical" href="https://vtmain.github.io/2017/04/13/huibianjichu-1/"/>
+
+
+<meta name="description" content="8086CPU(16位)的寄存器">
+<meta name="keywords">
+<meta property="og:type" content="article">
+<meta property="og:title" content="寄存器-1">
+<meta property="og:url" content="https://vtmain.github.io/2017/04/13/huibianjichu-1/index.html">
+<meta property="og:site_name" content="phil's  blog">
+<meta property="og:description" content="8086CPU(16位)的寄存器">
+<meta property="og:updated_time" content="2017-04-13T11:33:11.812Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="寄存器-1">
+<meta name="twitter:description" content="8086CPU(16位)的寄存器">
+
+
+<link rel="stylesheet" type="text/css" href="/css/style.css?v=1.1" />
+<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet'>
+
+
+
+
+
+<script type="text/javascript">
+  var themeConfig = {
+    fancybox: {
+      enable: false
+    },
+  };
+</script>
+
+
+
+
+  
+
+
+
+    <title> 寄存器-1 - phil's  blog </title>
+  </head>
+
+  <body>
+    <div id="page">
+      <header id="masthead"><div class="site-header-inner">
+    <h1 class="site-title">
+        <a href="/." class="logo">phil's  blog</a>
+    </h1>
+
+    <nav id="nav-top">
+        
+            <ul id="menu-top" class="nav-top-items">
+                
+                    <li class="menu-item">
+                        <a href="/archives">
+                            
+                            
+                                Archives
+                            
+                        </a>
+                    </li>
+                
+                    <li class="menu-item">
+                        <a href="/about">
+                            
+                            
+                                About
+                            
+                        </a>
+                    </li>
+                
+            </ul>
+        
+  </nav>
+</div>
+
+      </header>
+      <div id="content">
+        
+    <div id="primary">
+        
+  <article class="post">
+    <header class="post-header">
+      <h1 class="post-title">
+        
+          寄存器-1
+        
+      </h1>
+
+      <time class="post-time">
+          Apr 13 2017
+      </time>
+    </header>
+
+
+
+    
+            <div class="post-content">
+            <p>8086CPU(16位)的寄存器</p>
+<a id="more"></a>
+<p>16位CPU有以下几方面的结构特性：</p>
+<blockquote>
+<ol>
+<li>运算器一次最多可处理16位数据</li>
+<li>寄存器的最大宽度为16位</li>
+<li>寄存器和运算器之间的通路为16位</li>
+</ol>
+</blockquote>
+<p>8086CPU的所有寄存器都是16位的，可以存放两个字节<br>8086CPU内部，能够一次性处理、传输、暂时存储的信息最大长度是16位的（内存单元的地址在送上地址总线之前）<br>8086CPU有20位地址总线，可以传送20位地址，达到1MB寻址能力</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">通用寄存器</th>
+<th style="text-align:left">段寄存器</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">AX</td>
+<td style="text-align:left">CS</td>
+</tr>
+<tr>
+<td style="text-align:left">BX</td>
+<td style="text-align:left">DS</td>
+</tr>
+<tr>
+<td style="text-align:left">CX</td>
+<td style="text-align:left">SS</td>
+</tr>
+<tr>
+<td style="text-align:left">DX</td>
+<td style="text-align:left">ES</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>当8086CPU要访问内存时由这4个段寄存器提供内存单元的段地址</li>
+</ul>
+<p>8086CPU物理地址的表示:<br>“段地址 * 16 + 偏移地址 = 物理地址”<br>“   基础地址  + 偏移地址 = 物理地址”<br>“        CS      :       IP “</p>
+<p>CS和IP是8086CPU中两个最关键的寄存器，它们指示了CPU当前要读取指令的地址</p>
+<blockquote>
+<p>CS：代码段寄存器<br>IP：指令指针寄存器  </p>
+</blockquote>
+<p>任意时刻，设CS中M，IP中N，8086CPU将从M*16+N单元开始，读取一条指令并执行<br>也可以这样表述：任意时刻，8086CPU取CS:IP指向的内容当做指令执行</p>
+<p>8086CPU工作过程概要：</p>
+<ol>
+<li>从CS:IP内存单元读取指令，读取的指令进入指令缓冲器;  </li>
+<li>IP = IP + Length(指令长度);  </li>
+<li>执行指令;  </li>
+<li>转到1继续执行  </li>
+</ol>
+<p>8086CPU加电或复位后(即CPU刚开始工作时)CS和IP被设置为CS = FFFFH，IP = 0000H，即在8086PC机启动时，CPU从内存FFFF0H单元中<br>读取指令，FFFF0H单元中的指令是8086PC机开机后执行的第一条指令</p>
+<p>可以通过改变CS:IP中的内容来控制CPU执行目标指令</p>
+<blockquote>
+<p>mov：传送指令(可以修改大部分寄存器的值，但是不能用于设置CS、IP)</p>
+</blockquote>
+<p>能够修改CS、IP的指令统称为转移指令，例如jmp</p>
+<blockquote>
+<p>格式：”jmp 段地址:偏移地址”<br>功能：用指令中给出的段地址修改CS，偏移地址修改IP<br>例如：jmp 2AE3:3, 执行后CS = 2AE3H， IP = 0003H，CPU将从2AE33H处读取指令</p>
+</blockquote>
+<p>若单独修改IP内容，可用”jmp 某一合法寄存器”，功能为”用寄存器中的值修改IP”<br>例如：”jmp ax”</p>
+<blockquote>
+<p>执行前: ax = 1000H, CS = 2000H, IP = 0003H<br>执行后: ax = 1000H, CS = 2000H, IP = 1000H  </p>
+</blockquote>
+<p>其功能类似于”mov IP, ax”指令</p>
+<p>关于代码段（16位8086PC机）<br>代码段长度≤64KB，因为偏移地址最大16位，16位寻址能力为64KB</p>
+
+            </div>
+          
+
+    
+  </article>
+
+    </div>
+
+      </div>
+
+      <footer id="colophon"><span class="copyright-year">
+    
+        &copy;
+    
+        2014 -
+    
+    2017
+    <span class="footer-author">Phil.</span>
+    <span class="power-by">
+        Powered by <a class="hexo-link" href="https://hexo.io/">Hexo</a> and <a class="theme-link" href="https://github.com/frostfan/hexo-theme-polarbear">Polar Bear</a>
+    </span>
+</span>
+
+      </footer>
+
+      <div class="back-to-top" id="back-to-top">
+        <i class="iconfont icon-up"></i>
+      </div>
+    </div>
+    
+
+
+    
+
+
+
+
+  
+    <script type="text/javascript" src="/lib/jquery/jquery-3.1.1.min.js"></script>
+  
+
+  
+
+    <script type="text/javascript" src="/js/src/theme.js?v=1.1"></script>
+<script type="text/javascript" src="/js/src/bootstrap.js?v=1.1"></script>
+
+  </body>
+</html>

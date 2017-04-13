@@ -12,6 +12,8 @@
 
 
 
+  <meta name="description" content="寄存器-2"/>
+
 
 
 
@@ -28,21 +30,20 @@
 
 
 
-<link rel="canonical" href="https://vtmain.github.io/about/"/>
+<link rel="canonical" href="https://vtmain.github.io/2017/04/13/huibianjichu-2/"/>
 
 
-<meta name="description" content="Email： zhangxiaofei0829@gmail.com GitHub： vtmain">
-<meta property="og:type" content="website">
-<meta property="og:title" content="phil's  blog">
-<meta property="og:url" content="https://vtmain.github.io/about/index.html">
+<meta name="description" content="复习：（CPU外部）地址总线：能传输多少个不同的信息，CPU就可以对多少个存储单元进行寻址。2^N （8086有20根地址总线）">
+<meta name="keywords">
+<meta property="og:type" content="article">
+<meta property="og:title" content="寄存器-2">
+<meta property="og:url" content="https://vtmain.github.io/2017/04/13/huibianjichu-2/index.html">
 <meta property="og:site_name" content="phil's  blog">
-<meta property="og:description" content="Email： zhangxiaofei0829@gmail.com GitHub： vtmain">
-<meta property="og:image" content="https://raw.githubusercontent.com/vtmain/vtmain.github.io/hexo-me/blog/extra/img/user.jpg">
-<meta property="og:updated_time" content="2017-04-13T09:14:50.076Z">
+<meta property="og:description" content="复习：（CPU外部）地址总线：能传输多少个不同的信息，CPU就可以对多少个存储单元进行寻址。2^N （8086有20根地址总线）">
+<meta property="og:updated_time" content="2017-04-13T11:27:57.430Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="phil's  blog">
-<meta name="twitter:description" content="Email： zhangxiaofei0829@gmail.com GitHub： vtmain">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/vtmain/vtmain.github.io/hexo-me/blog/extra/img/user.jpg">
+<meta name="twitter:title" content="寄存器-2">
+<meta name="twitter:description" content="复习：（CPU外部）地址总线：能传输多少个不同的信息，CPU就可以对多少个存储单元进行寻址。2^N （8086有20根地址总线）">
 
 
 <link rel="stylesheet" type="text/css" href="/css/style.css?v=1.1" />
@@ -67,7 +68,7 @@
 
 
 
-    <title>  - phil's  blog </title>
+    <title> 寄存器-2 - phil's  blog </title>
   </head>
 
   <body>
@@ -108,21 +109,51 @@
       <div id="content">
         
     <div id="primary">
-        <article class="post">
-            <header class="post-header">
-                <h1 class="post-title">
-                    
-                </h1>
-            </header>
+        
+  <article class="post">
+    <header class="post-header">
+      <h1 class="post-title">
+        
+          寄存器-2
+        
+      </h1>
+
+      <time class="post-time">
+          Apr 13 2017
+      </time>
+    </header>
+
+
+
+    
             <div class="post-content">
-                <p><img src="https://raw.githubusercontent.com/vtmain/vtmain.github.io/hexo-me/blog/extra/img/user.jpg" alt=""></p>
-<ul>
-<li>Email： zhangxiaofei0829@gmail.com</li>
-<li>GitHub： <a href="https://github.com/vtmain" target="_blank" rel="external">vtmain</a></li>
-</ul>
+            <p>复习：（CPU外部）<br>地址总线：能传输多少个不同的信息，CPU就可以对多少个存储单元进行寻址。<br>2^N （8086有20根地址总线）</p>
+<a id="more"></a>
+<p>数据总线</p>
+<blockquote>
+<p>数据总线的宽度决定了CPU与外界交换数据的速度。<br>8根数据总线一次可传递一个8位二进制数据，即1个字节，8088CPU数据总线宽度为8, 8086CPU宽度为16。</p>
+</blockquote>
+<p>控制总线</p>
+<blockquote>
+<p>是一些不同控制线的集合，有多少根，CPU就提供对外部器件的多少种控制。<br>比如内存读写命令，由其中一根”读信号输出”的控制线负责从CPU向外部输出读信号，同样，”写信号输出”控制心啊负责传送写信号。</p>
+</blockquote>
+<p>字节、字：字节长8位，记为<code>byte</code>；字长16位，记为<code>word</code></p>
+<p>( end )</p>
+<p>mov bx, 1000H<br>mov ds, bx<br>m0v al, [0]  </p>
+<p>mov指令可以完成三种传送：</p>
+<ol>
+<li>将数据直接送入寄存器;</li>
+<li>将一个寄存器的数据送入另一个寄存器;</li>
+<li>将内存单元的数据送入寄存器;  </li>
+</ol>
+<p>[…]表示一个内存单元，”…”表示内存单元的偏移地址，执行指令时，8086CPU自动取ds中的数据为内存单元的段地址</p>
 
             </div>
-        </article>
+          
+
+    
+  </article>
+
     </div>
 
       </div>
