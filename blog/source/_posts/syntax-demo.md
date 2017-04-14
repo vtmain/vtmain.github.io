@@ -1,12 +1,15 @@
 ---
 title: Syntax Demo
 date: 2017-04-13 15:48:12
+description: 
 tags: [Syntax]
-categories: Guides
+categories: [Guides]
 ---
 ## Welcome to GitHub Pages
 
 You can use the [editor on GitHub](https://github.com/vtmain/vtmain.github.io/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+
+<!-- more -->
 
 ### Markdown
 
