@@ -3,6 +3,27 @@
   
     
     <entry>
+      <title><![CDATA[javascript学习笔记]]></title>
+      <url>/2017/05/11/javascript-1/</url>
+      <content type="html"><![CDATA[<p>占坑<br><a id="more"></a></p>
+]]></content>
+      
+        <categories>
+            
+            <category> JavaScript </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> JavaScript </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[寄存器-2]]></title>
       <url>/2017/04/13/huibianjichu-2/</url>
       <content type="html"><![CDATA[<p>复习：（CPU外部）<br>地址总线：能传输多少个不同的信息，CPU就可以对多少个存储单元进行寻址。<br>2^N （8086有20根地址总线）</p>
@@ -115,6 +136,43 @@
             
         </categories>
         
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[hexo常用命令参考]]></title>
+      <url>/2017/04/13/command-ref/</url>
+      <content type="html"><![CDATA[<p>Hexo安装，初始化，和常用命令。<br><a id="more"></a></p>
+<h4 id="hexo"><a href="#hexo" class="headerlink" title="hexo"></a>hexo</h4><figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">npm install hexo -g            #安装</div><div class="line">hexo init                      #初始化</div><div class="line">hexo new [layout] &lt;<span class="built_in">title</span>&gt;      #新建</div></pre></td></tr></table></figure>
+<h4 id="常用简写"><a href="#常用简写" class="headerlink" title="常用简写"></a>常用简写</h4><figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">hexo n "postName" == hexo new "postName"  #新建文章(default layout post)</div><div class="line">hexo p == hexo publish                    #发布草稿(_draft-&gt;_post)</div><div class="line">hexo g == hexo generate                   #生成</div><div class="line">hexo s == hexo server                     #启动服务预览</div><div class="line">hexo s -g == hexo server --generate       #启动服务预览前生成</div><div class="line">hexo d == hexo deploy                     #部署</div><div class="line">hexo d -g == hexo deploy --generate       #部署前生成</div><div class="line">hexo g -d == hexo d -g                    #部署前生成</div></pre></td></tr></table></figure>
+<h4 id="服务器"><a href="#服务器" class="headerlink" title="服务器"></a>服务器</h4><figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">hexo server                 #启动服务预览(默认端口<span class="number">4000</span>，Ctrl+C关闭)</div><div class="line">hexo server -s              #静态模式</div><div class="line">hexo server -p <span class="number">5000</span>         #更改端口</div><div class="line">hexo server -i <span class="number">192</span>.<span class="number">168</span>.<span class="number">1</span>.<span class="number">1</span>  #自定义IP</div><div class="line"></div><div class="line">hexo clean                  #清除缓存(网页正常情况下可以忽略此条命令)</div><div class="line">hexo generate               #生成静态网页至public目录</div><div class="line">hexo generate --watch       #监视文件变动</div><div class="line">hexo server --generate      #启动预览前生成</div><div class="line">hexo deploy                 #开始部署(将.deploy目录部署到GitHub)</div><div class="line">hexo deploy --generate      #部署前生成</div></pre></td></tr></table></figure>
+<h4 id="模板"><a href="#模板" class="headerlink" title="模板"></a>模板</h4><figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">hexo new [layout] &lt;<span class="built_in">title</span>&gt;</div></pre></td></tr></table></figure>
+<h5 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h5><figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">hexo new "postName"</div><div class="line">hexo new page "pageName"</div><div class="line">hexo new photo "My Gallery"</div><div class="line">hexo new "Hello World" --lang tw</div></pre></td></tr></table></figure>
+<h3 id="前置声明"><a href="#前置声明" class="headerlink" title="前置声明"></a>前置声明</h3><ul>
+<li><code>title:</code> 标题，必须</li>
+<li><code>date:</code> 创建时间</li>
+<li><code>updated:</code> 修改时间</li>
+<li><code>description:</code> 首页文章列表中显示概要</li>
+<li><code>comments:</code> 是否开启评论(true/false)</li>
+<li><code>tags:</code> 文章标签(支持多级)</li>
+<li><code>categories:</code> 文章分类(支持多级)</li>
+<li><code>toc:</code> 是否显示文章目录结构(true/false)  </li>
+</ul>
+<p>多级分类示例<br><figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function">categories:</span></div><div class="line">- <span class="title">Sports</span></div><div class="line">- <span class="title">Baseball</span></div><div class="line"><span class="title">tags</span>:</div><div class="line">- <span class="title">Injury</span></div><div class="line">- <span class="title">Fight</span></div><div class="line">- <span class="title">Shocking</span></div></pre></td></tr></table></figure></p>
+]]></content>
+      
+        <categories>
+            
+            <category> Guides </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> Syntax </tag>
+            
+        </tags>
         
     </entry>
     
