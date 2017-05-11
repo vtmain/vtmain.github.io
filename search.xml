@@ -3,9 +3,61 @@
   
     
     <entry>
-      <title><![CDATA[javascript学习笔记]]></title>
+      <title><![CDATA[javascript变量、数据类型]]></title>
       <url>/2017/05/11/javascript-1/</url>
-      <content type="html"><![CDATA[<p>占坑<br><a id="more"></a></p>
+      <content type="html"><![CDATA[<p><strong>一、变量</strong><br>ECMAScript的变量是松散类型的，所谓松散类型就是可以用来保存任何类型的数据。每个变量仅仅是一个用于保存值的占位符而已。</p>
+<a id="more"></a>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> message_un;      <span class="comment">// 声明，但未初始化</span></div><div class="line"><span class="keyword">var</span> message = <span class="string">"hi"</span>;  <span class="comment">// 可在声明同时初始化</span></div><div class="line">message = <span class="number">100</span>;       <span class="comment">// 已有类型时，转其他类型。有效，但不推荐</span></div><div class="line"></div><div class="line"><span class="comment">// 下面这个变量并没有声明;</span></div><div class="line"><span class="comment">// var age;</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">test</span>(<span class="params"></span>)</span>&#123;</div><div class="line">    <span class="keyword">var</span> a = <span class="string">"hi"</span>;    <span class="comment">// 局部变量</span></div><div class="line">    b = <span class="string">"hello"</span>;     <span class="comment">// 全局变量</span></div><div class="line"></div><div class="line">    <span class="keyword">var</span> c = <span class="string">"name"</span>,  <span class="comment">// 可连续初始化多个变量类型，注意间隔逗号</span></div><div class="line">        d = <span class="literal">false</span>,</div><div class="line">        e = <span class="number">29</span>;</div><div class="line">&#125;</div><div class="line">test();</div><div class="line">alert(a);                        <span class="comment">// 错误！</span></div><div class="line">alert(message_un);               <span class="comment">// 错误！</span></div><div class="line">alert(message_un == <span class="literal">undefined</span>);  <span class="comment">// true</span></div><div class="line">alert(b);                        <span class="comment">// "hello"</span></div><div class="line">alert(c);                        <span class="comment">// "name"</span></div><div class="line">alert(d);                        <span class="comment">// false</span></div><div class="line">alert(e);                        <span class="comment">//</span></div><div class="line">alert(age);                      <span class="comment">// 错误！</span></div></pre></td></tr></table></figure>
+<p><strong>二、数据类型</strong><br>5种简单数据类型（基本数据类型）<br><code>Undefined</code>、<code>Null</code>、<code>Boolean</code>、<code>Number</code>、<code>String</code><br>1种复杂数据类型<br><code>Object</code>  </p>
+<p><strong>Undefined</strong> 类型只有一个值，即特殊的undefined。在使用<code>var</code>声明变量但未对其加以初始化时，这个变量的值就是undefined，比如上面定义的<code>message_un</code>。<br><strong>Null</strong> 类型是第二个只有一个值的数据类型，这个特殊的值是<code>null</code>。从逻辑角度看，null值表示一个空对象指针，而这也正是<code>typeof null</code>会返回<code>object</code>的原因。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> n1 = <span class="number">95</span>;</div><div class="line"><span class="keyword">var</span> car = <span class="literal">null</span>;</div><div class="line">alert(<span class="keyword">typeof</span> message_un);  <span class="comment">// "undefined"</span></div><div class="line">alert(<span class="keyword">typeof</span> age);         <span class="comment">// "undefined"</span></div><div class="line">alert(<span class="keyword">typeof</span> message);     <span class="comment">// "string"</span></div><div class="line">alert(<span class="keyword">typeof</span>(message));    <span class="comment">// "string"</span></div><div class="line">alert(<span class="keyword">typeof</span> <span class="number">95</span>);          <span class="comment">// "number"</span></div><div class="line">alert(<span class="keyword">typeof</span>(n1));         <span class="comment">// "number"</span></div><div class="line">alert(<span class="keyword">typeof</span>(d));          <span class="comment">// "boolean"</span></div><div class="line">alert(<span class="keyword">typeof</span> <span class="literal">null</span>);        <span class="comment">// "object"</span></div><div class="line">alert(<span class="keyword">typeof</span> car);         <span class="comment">// "object"</span></div></pre></td></tr></table></figure>
+<p>如果定义的变量准备在将来用于保存对象，那么最好将该变量初始化为<code>null</code>而不是其他值。这样一来，只要直接检查null值就可以知道对应的变量是否已经保存了一个对象的引用。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (car != <span class="literal">null</span>) &#123;</div><div class="line">    <span class="comment">// do something</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 实际上undefined值是派生自null值的，因此相等性测试要返回true</span></div><div class="line">alert(<span class="literal">null</span> == <span class="literal">undefined</span>);   <span class="comment">// true</span></div></pre></td></tr></table></figure>
+<p>虽然<code>==</code>总是返回true，但仍需明确<code>undefined</code>和<code>null</code>的区别，二者用途完全不同。</p>
+<ul>
+<li>没必要把一个变量的值显式设置为undefined，因为不初始化时即为undefined</li>
+<li>只要意在保存对象的变量还没有真正保存对象，就应该明确地让该变量保存null值  </li>
+</ul>
+<p>这样做不仅体现null作为空对象指针的惯例，而且也有助于进一步区分undefined和null。</p>
+<p><strong>Boolean</strong> 类型只有两个字面值true和false。这两个值与数字值不是一回事，true不一定等于1，false不一定等于0。ECMAScript中所有类型的值都有与这两个Boolean值等价的值。要转换，可以调用转型函数Boolean()<br><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> message = <span class="string">"hello world"</span>;</div><div class="line"><span class="keyword">var</span> messageAsBoolean = <span class="built_in">Boolean</span>(message);   <span class="comment">// true</span></div></pre></td></tr></table></figure></p>
+<p>转换值取决于数据类型及其实际值，如下表  </p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">数据类型</th>
+<th style="text-align:left">转换为true的值</th>
+<th style="text-align:left">转换为false的值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Boolean</td>
+<td style="text-align:left">true</td>
+<td style="text-align:left">false</td>
+</tr>
+<tr>
+<td style="text-align:left">String</td>
+<td style="text-align:left">任何非空字符串</td>
+<td style="text-align:left">“”(空字符串)</td>
+</tr>
+<tr>
+<td style="text-align:left">Number</td>
+<td style="text-align:left">任何非零数字值(包括无穷大)</td>
+<td style="text-align:left">0和NaN</td>
+</tr>
+<tr>
+<td style="text-align:left">Object</td>
+<td style="text-align:left">任何对象</td>
+<td style="text-align:left">null</td>
+</tr>
+<tr>
+<td style="text-align:left">Undefined</td>
+<td style="text-align:left">n/a</td>
+<td style="text-align:left">undefined</td>
+</tr>
+</tbody>
+</table>
+<p>　　<br>待续..</p>
 ]]></content>
       
         <categories>
