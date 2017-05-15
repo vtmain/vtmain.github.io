@@ -3,6 +3,37 @@
   
     
     <entry>
+      <title><![CDATA[protocol buffer]]></title>
+      <url>/2017/05/12/protobuf-1/</url>
+      <content type="html"><![CDATA[<p>protobuf在Windows环境下获取，编译器(c++ version)生成和一般使用方法。  </p>
+<a id="more"></a>  
+<ul>
+<li><strong>Protocol Buffer</strong>  </li>
+</ul>
+<blockquote>
+<p>Protocol Buffers (a.k.a., protobuf) are Google’s language-neutral, platform-neutral, extensible mechanism for serializing structured data. You can find protobuf’s documentation on the Google Developers site.  </p>
+<p>To install protobuf, you need to install the protocol compiler (used to compile .proto files) and the protobuf runtime for your chosen programming language.</p>
+</blockquote>
+<p>项目地址 <a href="https://github.com/google/protobuf" target="_blank" rel="external">google/protobuf - github</a><br>依据README描述，需要做的是搞定compiler和runtime，其中compiler由C++实现，只有runtime提供各语言版本。<br>我的主要使用方式是Win/C++，关注<code>src</code>和<code>cmake</code>目录。<br>准备工具，<code>CMake</code>(<a href="https://cmake.org/download/" target="_blank" rel="external">下载</a>)和<code>Virtual Studio</code>  </p>
+<blockquote>
+<p>若只使用发布版本，可直接下载，参考protobuf项目<a href="https://github.com/google/protobuf/blob/master/src/README.md" target="_blank" rel="external">README</a>中的C++ Installation - Windows部分 ：</p>
+<blockquote>
+<p>C++ Installation - Windows<br>If you only need the protoc binary, you can download it from the release page:<br><a href="https://github.com/google/protobuf/releases" target="_blank" rel="external">https://github.com/google/protobuf/releases</a><br>In the downloads section, download the zip file protoc-$VERSION-win32.zip. It contains the protoc binary as well as public proto files of protobuf library.<br>To build from source using Microsoft Visual C++, see cmake/README.md.<br>To build from source using Cygwin or MinGW, follow the Unix installation instructions, above.</p>
+</blockquote>
+</blockquote>
+<ul>
+<li><strong>compiler</strong>  </li>
+</ul>
+<p>建立安装目录<br><figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function">C:\<span class="title">Program</span> <span class="title">Files</span> (<span class="title">x86</span>)\<span class="title">Microsoft</span> <span class="title">Visual</span> <span class="title">Studio</span> 11.0\<span class="title">VC</span>\<span class="title">bin</span>\<span class="title">amd64</span>&gt;<span class="title">d</span>:</span></div><div class="line"><span class="title">D</span>:\&gt;<span class="title">cd</span> <span class="title">git</span>\<span class="title">protobuf</span></div><div class="line"><span class="title">D</span>:\<span class="title">git</span>\<span class="title">protobuf</span>&gt;<span class="title">mkdir</span> <span class="title">install</span></div></pre></td></tr></table></figure></p>
+<p>gmock<br><figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">// 不做unit test，所以不处理gmock模块，下一步生成工程文件时需添加命令选项</div><div class="line">-Dprotobuf_BUILD_TESTS=OFF</div></pre></td></tr></table></figure></p>
+<p>生成Virtual Studio 2012(11.0)工程文件<br><figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function">D:\<span class="title">git</span>\<span class="title">protobuf</span>&gt;<span class="title">cd</span> ..\<span class="title">cmake</span></span></div><div class="line"><span class="title">D</span>:\<span class="title">git</span>\<span class="title">protobuf</span>\<span class="title">cmake</span>&gt;<span class="title">mkdir</span> <span class="title">build</span> &amp; <span class="title">cd</span> <span class="title">build</span></div><div class="line"><span class="title">D</span>:\<span class="title">git</span>\<span class="title">protobuf</span>\<span class="title">cmake</span>\<span class="title">build</span>&gt;<span class="title">mkdir</span> <span class="title">solution</span> &amp; <span class="title">cd</span> <span class="title">solution</span></div><div class="line"><span class="title">D</span>:\<span class="title">git</span>\<span class="title">protobuf</span>\<span class="title">cmake</span>\<span class="title">build</span>\<span class="title">solution</span>&gt;<span class="title">cmake</span> -<span class="title">G</span> "<span class="title">Visual</span> <span class="title">Studio</span> 11 2012 <span class="title">Win64</span>" -<span class="title">DCMAKE_INSTALL_PREFIX</span>=../../../../<span class="title">install</span> ../.. -<span class="title">Dprotobuf_BUILD_TESTS</span>=<span class="title">OFF</span></div></pre></td></tr></table></figure></p>
+<p>至此，<code>solution</code>目录下已经生成vs 2012的工程文件。<br>下一步，编译protobuf源码</p>
+]]></content>
+      
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[javascript变量、数据类型]]></title>
       <url>/2017/05/11/javascript-1/</url>
       <content type="html"><![CDATA[<p><strong>一、变量</strong><br>ECMAScript的变量是松散类型的，所谓松散类型就是可以用来保存任何类型的数据。每个变量仅仅是一个用于保存值的占位符而已。</p>
