@@ -3,6 +3,166 @@
   
     
     <entry>
+      <title><![CDATA[C++基础知识点]]></title>
+      <url>/2017/05/17/cpp-base-knowledge-1/</url>
+      <content type="html"><![CDATA[<p>占坑<br><a id="more"></a></p>
+<ol>
+<li>继承，多态，虚函数表</li>
+<li>内存对齐</li>
+<li>stl</li>
+<li>static/const 声明周期</li>
+<li>new/delete  malloc/free</li>
+</ol>
+]]></content>
+      
+        <categories>
+            
+            <category> C++ </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> C++ </tag>
+            
+            <tag> 多态 </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[进程空间]]></title>
+      <url>/2017/05/17/os-process-1/</url>
+      <content type="html"><![CDATA[<p>占坑<br><a id="more"></a></p>
+<ul>
+<li><p>进程空间分布图  </p>
+</li>
+<li><p>栈区/堆区/代码区/全局变量区<br>1.代码段(code或text)<br>　　代码段由各个函数产生，函数的每一个语句将最终经过编绎和汇编生成二进制机器代码(具体生生哪种体系结构的机器代码由编译器决定)。<br>2.只读数据段(RO Data)<br>　　只读数据段的特点是在运行中不需要改变。只读全局变量，只读局部变量，程序中使用的常量等会在编译时被放入到只读数据区。<br>3.读写数据段(RW Data)<br>　　读写数据段又称已初始化数据段，表示可以读也可以写的数据区。通常已初始化的全局变量和局部静态变量被放在了读写数据段，如：在函数中定义static char b[ 100]={“ABCDEFG”};读写数据区的特点是必须在程序经过初始化，如果只定义，没初始值，则不会生成读写数据区，而会定位为未初始化数据区(BSS)。<br>4.未初始化数据段(BSS)<br>　　该段中的数据没有经过初始化，不是目标文件中的一段。未初始化数据段只在运行的初始化阶段才会产生，因此它的大小不会影响目标文件的大小。<br>5.堆(heap)<br>　　堆内存只在程序运行时出现，一般由程序员分配和释放（malloc、free）。分配内存的函数所分配的内存空间在堆上，程序必须保证使用free释放，否则会发生内存泄漏。<br>6.栈(stack)<br>　　栈内存只在程序运行时出现，在函数内部使用的变量、函数的参数以及返回值将使用栈空间，栈空间由编译器自动分配和释放  </p>
+</li>
+</ul>
+<p>demo<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> a = <span class="number">0</span>; <span class="comment">//全局初始化区，。rw data段</span></div><div class="line"><span class="keyword">static</span> <span class="keyword">int</span> b=<span class="number">20</span>; <span class="comment">//全局初始化区，。 rw data段</span></div><div class="line"><span class="keyword">char</span> *p1; <span class="comment">//全局未初始化区 .bss段</span></div><div class="line"><span class="keyword">const</span> <span class="keyword">int</span> A = <span class="number">10</span>; <span class="comment">//.rodata段</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">int</span> b; <span class="comment">// 栈</span></div><div class="line">    <span class="keyword">char</span> s[] = <span class="string">"abc"</span>; <span class="comment">//栈</span></div><div class="line">    <span class="keyword">char</span> *p2; <span class="comment">//栈</span></div><div class="line">    <span class="keyword">static</span> <span class="keyword">int</span> c = <span class="number">0</span>; <span class="comment">//全局(静态)初始化区 .rw data段</span></div><div class="line">    <span class="keyword">char</span> *p3 = <span class="string">"123456"</span>; <span class="comment">//123456\0在常量区ro data，p3 在栈上。</span></div><div class="line">    p1 = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(<span class="number">10</span>);<span class="comment">//分配得来的10和20个字节的区域就在堆区</span></div><div class="line">    p2 = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(<span class="number">20</span>);</div><div class="line">    <span class="built_in">strcpy</span>(p1, <span class="string">"123456"</span>); <span class="comment">//123456\0 在常量区，编译器可能会将它与p3所指向的"123456"优化成一个地方</span></div><div class="line"></div><div class="line">    <span class="built_in">free</span>(p1);</div><div class="line">    <span class="built_in">free</span>(p2);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>总结：<br>1.代码段、RO Data、RW Data及BSS这四个段都属于程序中的静态区域，堆和栈属于程序的动态区域；<br>2.C程序经过编译连接生产的二进制可执行代码，只包含代码段、RO Data、RW Data，在程序运行后才会包含后面两个段，BSS中的数据将会在运行前置0；<br>3.使用const定义的变量将放于程序的只读数据区；<br>4.函数体中定义的变量通常是在栈上，不需要在程序中进行管理，由编绎器处理。</p>
+<ul>
+<li>线程加载，线程栈</li>
+</ul>
+]]></content>
+      
+        
+        <tags>
+            
+            <tag> 进程 </tag>
+            
+            <tag> 线程 </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[zip格式分析及comment提取]]></title>
+      <url>/2017/05/17/zip-format-1/</url>
+      <content type="html"><![CDATA[<p>占坑<br><a id="more"></a></p>
+]]></content>
+      
+        
+        <tags>
+            
+            <tag> zip </tag>
+            
+            <tag> EOCD </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[tcp socket实现]]></title>
+      <url>/2017/05/17/socket-communication-1/</url>
+      <content type="html"><![CDATA[<p>占坑<br><a id="more"></a></p>
+]]></content>
+      
+        
+        <tags>
+            
+            <tag> socket </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[spine中的骨骼实现原理]]></title>
+      <url>/2017/05/17/spine-1/</url>
+      <content type="html"><![CDATA[<p>占坑<br><a id="more"></a></p>
+]]></content>
+      
+        <categories>
+            
+            <category> Gamedev </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> spine </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[JNI环境分析]]></title>
+      <url>/2017/05/17/jni-environment-1/</url>
+      <content type="html"><![CDATA[<p>占坑<br><a id="more"></a></p>
+]]></content>
+      
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[SVN服务器搭建/ubuntu-14.04]]></title>
+      <url>/2017/05/16/svn-server-ubuntu14/</url>
+      <content type="html"><![CDATA[<p>系统环境 Ubuntu 14.04, svn server建立过程<br><a id="more"></a></p>
+<ol>
+<li><p>安装svn</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install subversion</div></pre></td></tr></table></figure>
+</li>
+<li><p>创建代码仓库</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">svnadmin create /home/svn/project</div><div class="line"><span class="built_in">cd</span> project</div><div class="line">ls</div></pre></td></tr></table></figure>
+</li>
+<li><p>修改文件执行权限</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">chmod +x /home/svn/project/conf/authz</div><div class="line">chmod +x /home/svn/project/conf/passwd</div><div class="line">chmod +x /home/svn/project/conf/svnserve.conf</div></pre></td></tr></table></figure>
+</li>
+<li><p>配置权限</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">vim /home/svn/project/conf/svnserve.conf</div><div class="line"></div><div class="line">// 以下项取消注释</div><div class="line">anon-access=none</div><div class="line">auth-access=write</div><div class="line">password-db=passwd</div><div class="line">authz-db=authz</div></pre></td></tr></table></figure>
+</li>
+<li><p>配置账户和密码</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">vim /home/svn/project/conf/passwd</div><div class="line"></div><div class="line">[user]</div><div class="line">user=<span class="number">123456</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>启动/查看/终止服务</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">svnserve -d -r /home/svn/project/</div><div class="line">sudo netstat -antp|grep svnserve</div><div class="line">pkill svnserve</div></pre></td></tr></table></figure>
+</li>
+<li><p>client访问</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function">svn://<span class="title">xxx.xxx.xxx.xxx</span>/<span class="title">project</span></span></div></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li>注意事项：<ol>
+<li>svn默认端口3690是否开启，否则client连接阻塞，后报错</li>
+<li>[user]下配置的用户名密码和等号间不要空格</li>
+<li>authz配置用户/用户组访问权限，否则client报authentication failed</li>
+</ol>
+</li>
+</ul>
+]]></content>
+      
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[protocol buffer]]></title>
       <url>/2017/05/12/protobuf-1/</url>
       <content type="html"><![CDATA[<p>protobuf在Windows环境下获取，编译器(c++ version)生成和一般使用方法。  </p>
