@@ -1,9 +1,11 @@
 ---
 title: Syntax Demo
 date: 2017-04-13 15:48:12
-description: 
+description:
 tags: [Syntax]
 categories: [Guides]
+toc:
+comments:
 ---
 ## Welcome to GitHub Pages
 

@@ -267,9 +267,10 @@ div {
         text-align: justify;
         text-justify: distribute;
         word-break: normal;
+	border-bottom: 1px solid #eee;
         h2 {
             margin: 1.4em 0 1.1em;
-            border-bottom: 1px solid #eee;
+            /*border-bottom: 1px solid #eee;*/
             overflow: hidden;
         }
         h3 {
@@ -281,6 +282,7 @@ div {
         p {
             margin: 0 0 1.234em;
             code {
+	        font-family: Menlo, Consolas, monospace;
                 display: inline-block;
                 margin: 0 5px;
                 padding: 0 5px;
@@ -318,6 +320,7 @@ div {
         ul, ol {
             border-radius: 3px;
             margin: 1em 0;
+	    padding: 0 0 0 20px;
             ul {
                 margin: 0;
             }
@@ -470,13 +473,15 @@ div {
 blockquote,.stressed {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    margin: 2.5em 0;
-    padding: 0 0 0 50px;
+    margin: 1em 1em;
+    padding: 0 0 0 10px;
     color: #555;
-    border-left: none;
+    border-left: 2px solid #aaa;
+    line-height: 24px;
+    font-size: 14px;
 }
 blockquote:before,.stressed-quote:before {
-    content: "\201C";
+    content: none;
     display: block;
     font-family: times;
     font-style: normal;
@@ -1011,15 +1016,15 @@ pre {
 figure.highlight,
 .codeblock {
     background:     #f7f8f8;
-    margin:         10px 0;
+    margin:         10px 15px;
+    border:         0;
     line-height:    1.1em;
     color:          #333;
-    padding-top:    15px;
     overflow:       hidden;
 
     table {
         display:    block;
-        width:      100%;
+	margin:     0 0 0 0 ;
     }
     // Reset for tag `pre` and  for class `.gutter`, `.code`, `.tag`
     pre,
@@ -1683,19 +1688,23 @@ figure.highlight,
 
 /* table*/
 table {
-    margin: auto auto 15px;
-    width: 100%;
+    margin: 0 0 0 15px;
+    width: auto;
     background: transparent;
+    border: 1px solid #f0f0f0;
     border-collapse: collapse;
     border-spacing: 0;
     text-align: left;
     th {
         font-weight: bold;
         padding: 5px 10px;
-        border-bottom: 2px solid #909ba2;
+        border-bottom: 1px solid #f0f0f0;
+	border-right: 1px solid #f0f0f0;
     }
     td {
         padding: 5px 10px;
+	border-bottom: 1px solid #f0f0f0;
+	border-right: 1px solid #f0f0f0;
     }
     tr {
         &:nth-child(2n) {
