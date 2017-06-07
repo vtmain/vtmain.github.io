@@ -3,6 +3,135 @@
   
     
     <entry>
+      <title><![CDATA[Cocos2d-x缓存类 - TextureCache]]></title>
+      <url>/2017/06/06/cocos-cache-1/</url>
+      <content type="html"><![CDATA[<p>Cocos2d-x中提供了三类缓存，用来处理纹理/精灵/动画需要大量重复加载时提高效率。<br>分别是<code>TextureCache</code>、<code>SpriteFrameCache</code>、<code>AnimationCache</code>  </p>
+<a id="more"></a>
+<p><strong>TextureCache 纹理缓存</strong><br>Cocos2d-x提供了TextureCache类，用来实现纹理缓存，其使用了多线程来异步加载纹理资源，大致过程是这样：  </p>
+<ol>
+<li>调用addImageAsync，传入资源路径[path]和回调指针[callback]，并将path转换为fullpath，即filename；  </li>
+<li>查询资源是否已经被缓存，是-返回，否-继续；  </li>
+<li>[mainThread]初始一个异步对象队列_asyncStructQueue(queue<asyncstruct*>)，和一个图片信息双端队列_imageInfoQueue(deque<imageinfo*>);  </imageinfo*></asyncstruct*></li>
+<li>[mainThread]起一个线程[t1]，开始异步加载(loadImage())，同时启动schedule，在每一帧执行addImageAsyncCallBack回调;  </li>
+<li>[mainThread]addImageAsyncCallBack中检查_imageInfoQueue中是否有加载完成的图片信息<ul>
+<li>有，pop取出图片信息(ImageInfo)生成纹理(Texture2D)并维护在纹理缓存的哈希表_texture<filename, texture2d*="">中，并释放AsyncStruct和Image对象。执行[callback]，一次异步加载结束。  </filename,></li>
+<li>无，函数返回;  </li>
+</ul>
+</li>
+<li>[t1]同时在执行的子线程(loadImage())，while(true)保持活跃。loadImage主要做两件事：  <ul>
+<li>(1) 检测_asyncStructQueue中是否有可用对象(AsyncStruct*)  <ul>
+<li>有可用对象。pop取出对象，检测该对象(使用filename)是否已在_texture中缓存  <ul>
+<li>若未缓存，遍历_imageInfoQueue中是否已生成并保存该图片信息，若已缓存，继续执行。  <ul>
+<li>已保存，跳出遍历，继续执行。  </li>
+<li>未保存。设一个flag，下一步生成。  </li>
+</ul>
+</li>
+<li>判定flag是否需要生成Image对象  <ul>
+<li>需要生成，用filename生成一个Image对象。  </li>
+<li>不需要生成，继续执行。  </li>
+</ul>
+</li>
+<li>(2) 生成图片信息(ImageInfo)并加入_imageInfoQueue维护起来，用以在addImageAsyncCallBack中使用。ImageInfo包含两部分内容，AsyncStruct和Image。  </li>
+</ul>
+</li>
+<li>无对象(空队列)。wait一个unique_lock并继续，期间也检测_needQuit是否结束线程。  </li>
+</ul>
+</li>
+</ul>
+</li>
+<li>[mainThread]启动t1和schedule后，用资源路径(filename)和回调指针(callback)生成一个异步对象(AsyncStruct)并加入队列，用以在t1中取出并使用。</li>
+<li>游戏主循环(MainLoop)结束时，Director会调用_textrreCache对象的waitForQuit()方法，将_needQuit置为true以终止线程。    </li>
+</ol>
+<p>过程中涉及到的关键对象:<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 异步对象结构体;</span></div><div class="line"><span class="keyword">struct</span> AsyncStruct</div><div class="line">&#123;</div><div class="line"><span class="keyword">public</span>:</div><div class="line">    AsyncStruct(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; fn, <span class="built_in">std</span>::function&lt;<span class="keyword">void</span>(Texture2D*)&gt; f) : filename(fn), callback(f) &#123;&#125;</div><div class="line"></div><div class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> filename;</div><div class="line">    <span class="built_in">std</span>::function&lt;<span class="keyword">void</span>(Texture2D*)&gt; callback;</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="comment">// 异步对象队列;</span></div><div class="line"><span class="built_in">std</span>::<span class="built_in">queue</span>&lt;AsyncStruct*&gt;* _asyncStructQueue;</div><div class="line"></div><div class="line"><span class="comment">// 图片信息结构体;</span></div><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> _imageInfoQueue</div><div class="line">&#123;</div><div class="line">    AsyncStruct *asyncStruct;</div><div class="line">    Image *image;</div><div class="line">&#125;ImageInfo;</div><div class="line"></div><div class="line"><span class="comment">// 图片信息双端队列;</span></div><div class="line"><span class="built_in">std</span>::<span class="built_in">deque</span>&lt;ImageInfo*&gt;* _imageInfoQueue;</div><div class="line"></div><div class="line"><span class="comment">// 纹理缓存;</span></div><div class="line"><span class="built_in">std</span>::<span class="built_in">unordered_map</span>&lt;<span class="built_in">std</span>::<span class="built_in">string</span>, Texture2D*&gt; _texture;</div><div class="line"></div><div class="line"><span class="comment">// 是否退出;</span></div><div class="line"><span class="keyword">bool</span> _needQuit;</div></pre></td></tr></table></figure></p>
+<p>关键函数：<br>addImageAsync函数，对应步骤1<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> TextureCache::addImageAsync(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span> &amp;path, <span class="keyword">const</span> <span class="built_in">std</span>::function&lt;<span class="keyword">void</span>(Texture2D*)&gt;&amp; callback)</div><div class="line">&#123;</div><div class="line">    Texture2D *texture = <span class="literal">nullptr</span>;</div><div class="line"></div><div class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> fullpath = FileUtils::getInstance()-&gt;fullPathForFilename(path);</div><div class="line"></div><div class="line">    <span class="keyword">auto</span> it = _textures.find(fullpath);</div><div class="line">    <span class="keyword">if</span>( it != _textures.end() )</div><div class="line">        texture = it-&gt;second;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (texture != <span class="literal">nullptr</span>)</div><div class="line">    &#123;</div><div class="line">        callback(texture);</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// lazy init</span></div><div class="line">    <span class="keyword">if</span> (_asyncStructQueue == <span class="literal">nullptr</span>)</div><div class="line">    &#123;             </div><div class="line">        _asyncStructQueue = <span class="keyword">new</span> <span class="built_in">queue</span>&lt;AsyncStruct*&gt;();</div><div class="line">        _imageInfoQueue   = <span class="keyword">new</span> <span class="built_in">deque</span>&lt;ImageInfo*&gt;();        </div><div class="line"></div><div class="line">        <span class="comment">// create a new thread to load images</span></div><div class="line">        _loadingThread = <span class="keyword">new</span> <span class="built_in">std</span>::thread(&amp;TextureCache::loadImage, <span class="keyword">this</span>);</div><div class="line"></div><div class="line">        _needQuit = <span class="literal">false</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (<span class="number">0</span> == _asyncRefCount)</div><div class="line">    &#123;</div><div class="line">        Director::getInstance()-&gt;getScheduler()-&gt;schedule(schedule_selector(TextureCache::addImageAsyncCallBack), <span class="keyword">this</span>, <span class="number">0</span>, <span class="literal">false</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    ++_asyncRefCount;</div><div class="line"></div><div class="line">    <span class="comment">// generate async struct</span></div><div class="line">    AsyncStruct *data = <span class="keyword">new</span> AsyncStruct(fullpath, callback);</div><div class="line"></div><div class="line">    <span class="comment">// add async struct into queue</span></div><div class="line">    _asyncStructQueueMutex.lock();</div><div class="line">    _asyncStructQueue-&gt;push(data);</div><div class="line">    _asyncStructQueueMutex.unlock();</div><div class="line"></div><div class="line">    _sleepCondition.notify_one();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>loadImage函数，对应步骤6<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> TextureCache::loadImage()</div><div class="line">&#123;</div><div class="line">    AsyncStruct *asyncStruct = <span class="literal">nullptr</span>;</div><div class="line"></div><div class="line">    <span class="keyword">while</span> (<span class="literal">true</span>)</div><div class="line">    &#123;</div><div class="line">        <span class="built_in">std</span>::<span class="built_in">queue</span>&lt;AsyncStruct*&gt; *pQueue = _asyncStructQueue;</div><div class="line">        _asyncStructQueueMutex.lock();</div><div class="line">        <span class="keyword">if</span> (pQueue-&gt;empty())</div><div class="line">        &#123;</div><div class="line">            _asyncStructQueueMutex.unlock();</div><div class="line">            <span class="keyword">if</span> (_needQuit) &#123;</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            &#125;</div><div class="line">            <span class="keyword">else</span> &#123;</div><div class="line">                <span class="built_in">std</span>::unique_lock&lt;<span class="built_in">std</span>::mutex&gt; lk(_sleepMutex);</div><div class="line">                _sleepCondition.wait(lk);</div><div class="line">                <span class="keyword">continue</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">else</span></div><div class="line">        &#123;</div><div class="line">            asyncStruct = pQueue-&gt;front();</div><div class="line">            pQueue-&gt;pop();</div><div class="line">            _asyncStructQueueMutex.unlock();</div><div class="line">        &#125;        </div><div class="line"></div><div class="line">        Image *image = <span class="literal">nullptr</span>;</div><div class="line">        <span class="keyword">bool</span> generateImage = <span class="literal">false</span>;</div><div class="line"></div><div class="line">        <span class="keyword">auto</span> it = _textures.find(asyncStruct-&gt;filename);</div><div class="line">        <span class="keyword">if</span>( it == _textures.end() )</div><div class="line">        &#123;</div><div class="line">           _imageInfoMutex.lock();</div><div class="line">           ImageInfo *imageInfo;</div><div class="line">           <span class="keyword">size_t</span> pos = <span class="number">0</span>;</div><div class="line">           <span class="keyword">size_t</span> infoSize = _imageInfoQueue-&gt;size();</div><div class="line">           <span class="keyword">for</span> (; pos &lt; infoSize; pos++)</div><div class="line">           &#123;</div><div class="line">               imageInfo = (*_imageInfoQueue)[pos];</div><div class="line">               <span class="keyword">if</span>(imageInfo-&gt;asyncStruct-&gt;filename.compare(asyncStruct-&gt;filename) == <span class="number">0</span>)</div><div class="line">                   <span class="keyword">break</span>;</div><div class="line">           &#125;</div><div class="line">           _imageInfoMutex.unlock();</div><div class="line">           <span class="keyword">if</span>(infoSize == <span class="number">0</span> || pos == infoSize)</div><div class="line">               generateImage = <span class="literal">true</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (generateImage)</div><div class="line">        &#123;</div><div class="line">            <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; filename = asyncStruct-&gt;filename;</div><div class="line">            <span class="comment">// generate image      </span></div><div class="line">            image = <span class="keyword">new</span> Image();</div><div class="line">            <span class="keyword">if</span> (image &amp;&amp; !image-&gt;initWithImageFileThreadSafe(filename))</div><div class="line">            &#123;</div><div class="line">                CC_SAFE_RELEASE(image);</div><div class="line">                CCLOG(<span class="string">"can not load %s"</span>, filename.c_str());</div><div class="line">                <span class="keyword">continue</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;    </div><div class="line"></div><div class="line">        <span class="comment">// generate image info</span></div><div class="line">        ImageInfo *imageInfo = <span class="keyword">new</span> ImageInfo();</div><div class="line">        imageInfo-&gt;asyncStruct = asyncStruct;</div><div class="line">        imageInfo-&gt;image = image;</div><div class="line"></div><div class="line">        <span class="comment">// put the image info into the queue</span></div><div class="line">        _imageInfoMutex.lock();</div><div class="line">        _imageInfoQueue-&gt;push_back(imageInfo);</div><div class="line">        _imageInfoMutex.unlock();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">true<span class="keyword">if</span>(_asyncStructQueue != <span class="literal">nullptr</span>)</div><div class="line">    &#123;</div><div class="line">        <span class="keyword">delete</span> _asyncStructQueue;</div><div class="line">true    _asyncStructQueue = <span class="literal">nullptr</span>;</div><div class="line">        <span class="keyword">delete</span> _imageInfoQueue;</div><div class="line">true    _imageInfoQueue = <span class="literal">nullptr</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>addImageAsyncCallBack函数，对应步骤5<br><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> TextureCache::addImageAsyncCallBack(<span class="keyword">float</span> dt)</div><div class="line">&#123;</div><div class="line">    <span class="comment">// the image is generated in loading thread</span></div><div class="line">    <span class="built_in">std</span>::<span class="built_in">deque</span>&lt;ImageInfo*&gt; *imagesQueue = _imageInfoQueue;</div><div class="line"></div><div class="line">    _imageInfoMutex.lock();</div><div class="line">    <span class="keyword">if</span> (imagesQueue-&gt;empty())</div><div class="line">    &#123;</div><div class="line">        _imageInfoMutex.unlock();</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span></div><div class="line">    &#123;</div><div class="line">        ImageInfo *imageInfo = imagesQueue-&gt;front();</div><div class="line">        imagesQueue-&gt;pop_front();</div><div class="line">        _imageInfoMutex.unlock();</div><div class="line"></div><div class="line">        AsyncStruct *asyncStruct = imageInfo-&gt;asyncStruct;</div><div class="line">        Image *image = imageInfo-&gt;image;</div><div class="line"></div><div class="line">        <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; filename = asyncStruct-&gt;filename;</div><div class="line"></div><div class="line">        Texture2D *texture = <span class="literal">nullptr</span>;</div><div class="line">        <span class="keyword">if</span> (image)</div><div class="line">        &#123;</div><div class="line">            <span class="comment">// generate texture in render thread</span></div><div class="line">            texture = <span class="keyword">new</span> Texture2D();</div><div class="line"></div><div class="line">            texture-&gt;initWithImage(image);</div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">if</span> CC_ENABLE_CACHE_TEXTURE_DATA</span></div><div class="line">            <span class="comment">// cache the texture file name</span></div><div class="line">            VolatileTextureMgr::addImageTexture(texture, filename);</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">            <span class="comment">// cache the texture. retain it, since it is added in the map</span></div><div class="line">            _textures.insert( <span class="built_in">std</span>::make_pair(filename, texture) );</div><div class="line">            texture-&gt;retain();</div><div class="line"></div><div class="line">            texture-&gt;autorelease();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">else</span></div><div class="line">        &#123;</div><div class="line">            <span class="keyword">auto</span> it = _textures.find(asyncStruct-&gt;filename);</div><div class="line">            <span class="keyword">if</span>(it != _textures.end())</div><div class="line">                texture = it-&gt;second;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (asyncStruct-&gt;callback)</div><div class="line">        &#123;</div><div class="line">            asyncStruct-&gt;callback(texture);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">if</span>(image)</div><div class="line">        &#123;</div><div class="line">            image-&gt;release();</div><div class="line">        &#125;       </div><div class="line">        <span class="keyword">delete</span> asyncStruct;</div><div class="line">        <span class="keyword">delete</span> imageInfo;</div><div class="line"></div><div class="line">        --_asyncRefCount;</div><div class="line">        <span class="keyword">if</span> (<span class="number">0</span> == _asyncRefCount)</div><div class="line">        &#123;</div><div class="line">            Director::getInstance()-&gt;getScheduler()-&gt;unschedule(schedule_selector(TextureCache::addImageAsyncCallBack), <span class="keyword">this</span>);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+]]></content>
+      
+        <categories>
+            
+            <category> Gamedev </category>
+            
+        </categories>
+        
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[基础算法(排序，查找)]]></title>
+      <url>/2017/06/05/basic-algorithm-1/</url>
+      <content type="html"><![CDATA[<p>以前这些基础的东西都写过完整代码实例，硬盘坏了，全丢了，以后都写在这里。<br>占坑<br><a id="more"></a></p>
+<p><strong>排序算法</strong>  </p>
+<p><img src="https://github.com/vtmain/vtmain.github.io/blob/hexo-me/blog/extra/img/1342514529_5795.png" alt="">  </p>
+]]></content>
+      
+        <categories>
+            
+            <category> C++ </category>
+            
+        </categories>
+        
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[Cocos2d-x批次渲染(Batch Render)原理]]></title>
+      <url>/2017/06/05/batch-render-1/</url>
+      <content type="html"><![CDATA[<a id="more"></a>
+]]></content>
+      
+        <categories>
+            
+            <category> Gamedev </category>
+            
+        </categories>
+        
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[Boost.Asio学习]]></title>
+      <url>/2017/06/05/boost-asio-1/</url>
+      <content type="html"><![CDATA[<p>一个io库<br>占坑</p>
+<a id="more"></a>  
+<p>linux - epoll<br>win - iocp</p>
+]]></content>
+      
+        <categories>
+            
+            <category> 网络通信 </category>
+            
+        </categories>
+        
+        
+        <tags>
+            
+            <tag> ASIO </tag>
+            
+        </tags>
+        
+    </entry>
+    
+    <entry>
+      <title><![CDATA[lua热更新]]></title>
+      <url>/2017/05/22/lua-update-1/</url>
+      <content type="html"><![CDATA[<p>热更新，不停机更新，是在不重新下载安装包，甚至不重启游戏的情况下对游戏进行更新。</p>
+<a id="more"></a>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">reloadup</span><span class="params">(module_name)</span></span></div><div class="line">    <span class="keyword">local</span> old_module = <span class="built_in">_G</span>[module_name]</div><div class="line"></div><div class="line">    package.loaded[module_name] = <span class="literal">nil</span></div><div class="line">    <span class="built_in">require</span> (module_name)</div><div class="line"></div><div class="line">    <span class="keyword">local</span> new_module = <span class="built_in">_G</span>[module_name]</div><div class="line">    <span class="keyword">for</span> k, v <span class="keyword">in</span> <span class="built_in">pairs</span>(new_module) <span class="keyword">do</span></div><div class="line">        old_module[k] = v</div><div class="line">    <span class="keyword">end</span></div><div class="line"></div><div class="line">    package.loaded[module_name] = old_module</div><div class="line"><span class="keyword">end</span></div></pre></td></tr></table></figure>
+<p>可以对旧模块完成更新。　　</p>
+<p>　</p>
+]]></content>
+      
+        <categories>
+            
+            <category> Gamedev </category>
+            
+        </categories>
+        
+        
+    </entry>
+    
+    <entry>
       <title><![CDATA[TCP Socket - (2)传输数据]]></title>
       <url>/2017/05/19/socket-communication-2/</url>
       <content type="html"><![CDATA[<p>Windows环境下用于网络通信的TCP Socket的一般实现方法。<br>本篇主要描述socket连接成功后，数据传输的过程。<br><a id="more"></a></p>
@@ -17,7 +146,7 @@
         
         <tags>
             
-            <tag> socket </tag>
+            <tag> Socket </tag>
             
         </tags>
         
@@ -26,10 +155,20 @@
     <entry>
       <title><![CDATA[游戏开发小技巧]]></title>
       <url>/2017/05/18/game-dev-experience-1/</url>
-      <content type="html"><![CDATA[<ol>
+      <content type="html"><![CDATA[<p>游戏开发中遇到的小问题，用什么方法解决的，或者学到什么有用的技巧，随时记录下来。</p>
+<a id="more"></a>
+<ol>
 <li><p>分帧处理<br>把大量计算拆分开，分散到各个帧里面，这样帧数就会相对平稳，不会出现CPU曲线波峰。  </p>
 </li>
 <li><p>资源压缩<br>TinyPNG脚本。</p>
+</li>
+<li><p>服务器防黑  </p>
+<ul>
+<li>通信数据加密</li>
+<li>数据完整性、有效性校验，必要时设置天花板值</li>
+<li>通信频率监测</li>
+<li>localtimer本地手写计时器，用time(nullptr)与登陆时服务器下发的时间戳做比对来实时计算，不使用系统timer</li>
+</ul>
 </li>
 </ol>
 ]]></content>
@@ -59,9 +198,9 @@
 <blockquote>
 <p>16位的图像RGBA，RGB各占用5位bit，alpha占用1位bit  </p>
 </blockquote>
-<p>正常情况下，根据Alpha通道进行混合颜色(图像合成)，只需要把需要组合的颜色计算出不含Alpha通道的原始RGB值，然后分别对应相加即可。<br>算法大概是这样的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">A图：(Ra, Ga, Ba, Alpha_a)  </div><div class="line">B图：(Rb, Gb, Bb, Alpha_b)</div></pre></td></tr></table></figure></p>
-<p>混合后的RGB三元组：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">C图：(Rc, Gc, Bc)</div></pre></td></tr></table></figure></p>
-<p>则有：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Rc = Ra * Alpha_a + Rb * Alpha_b</div><div class="line">Gc = Ga * Alpha_a + Gb * Alpha_b</div><div class="line">Bc = Ba * Alpha_a + Bb * Alpha_b</div></pre></td></tr></table></figure></p>
+<p>正常情况下，根据Alpha通道进行混合颜色(图像合成)，只需要把需要组合的颜色计算出不含Alpha通道的原始RGB值，然后分别对应相加即可。<br>算法大概是这样的：<br><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">A图：(<span class="built_in">Ra</span>, Ga, <span class="keyword">Ba, </span>Alpha_a)  </div><div class="line"><span class="keyword">B图：(Rb, </span>Gb, <span class="keyword">Bb, </span>Alpha_b)</div></pre></td></tr></table></figure></p>
+<p>混合后的RGB三元组：<br><figure class="highlight gcode"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">C图：<span class="comment">(Rc, Gc, Bc)</span></div></pre></td></tr></table></figure></p>
+<p>则有：<br><figure class="highlight autohotkey"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Rc = Ra * Alph<span class="built_in">a_a</span> + Rb * Alph<span class="built_in">a_b</span></div><div class="line">Gc = Ga * Alph<span class="built_in">a_a</span> + Gb * Alph<span class="built_in">a_b</span></div><div class="line">Bc = Ba * Alph<span class="built_in">a_a</span> + Bb * Alph<span class="built_in">a_b</span></div></pre></td></tr></table></figure></p>
 <p>上述计算，即可得出混合后的颜色。  </p>
 <blockquote>
 <p><code>光栅图像</code> …<br><code>锯齿</code>是由于光栅寻址而产生的走样，详细内容学习一下再写出来`</p>
@@ -135,9 +274,15 @@
 <ol>
 <li>继承，多态，虚函数表</li>
 <li>内存对齐</li>
-<li>stl</li>
-<li>static/const 声明周期</li>
+<li>stl容器/算法</li>
+<li>static/const 生命周期</li>
 <li>new/delete  malloc/free</li>
+<li>进程空间分布</li>
+<li><p>引用和指针<br>引用类型的变量会占用内存空间，占用的内存空间大小和指针类型的大小是相同的。虽然引用是一个对象的别名，但是在汇编层面，和指针是一样的。以下代码可以编译以下，用gdb调试，也可以反汇编看的更清楚。  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></div><div class="line"></div><div class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> <span class="built_in">std</span>;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">int</span> a = <span class="number">6</span>;</div><div class="line">    <span class="keyword">int</span> &amp;r = a;    <span class="comment">// 等价于int const *b = &amp;a;</span></div><div class="line">    <span class="keyword">int</span> *p = &amp;a;</div><div class="line">    <span class="keyword">int</span> x = r;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>extern “C”<br>单独对于extern关键字来说，对应于static，都是改变了变量的作用域。<br>extern “C”是为了兼容c模式的编译，C++相比C多了虚函数，以及相关的函数重载，所以C++代码在编译时会修改函数名，附带参数类型上去，而C不会。此种写法就是为了告诉编译器，使用C风格的编译，不修改函数名，以兼容C模式的调用。</p>
+</li>
 </ol>
 ]]></content>
       
@@ -175,14 +320,12 @@
 </ul>
 ]]></content>
       
+        <categories>
+            
+            <category> C++ </category>
+            
+        </categories>
         
-        <tags>
-            
-            <tag> 进程 </tag>
-            
-            <tag> 线程 </tag>
-            
-        </tags>
         
     </entry>
     
@@ -192,12 +335,16 @@
       <content type="html"><![CDATA[<p>占坑<br><a id="more"></a></p>
 ]]></content>
       
+        <categories>
+            
+            <category> Gamedev </category>
+            
+        </categories>
+        
         
         <tags>
             
-            <tag> zip </tag>
-            
-            <tag> EOCD </tag>
+            <tag> Zip </tag>
             
         </tags>
         
@@ -242,7 +389,7 @@
         
         <tags>
             
-            <tag> socket </tag>
+            <tag> Socket </tag>
             
         </tags>
         
@@ -263,7 +410,7 @@
         
         <tags>
             
-            <tag> spine </tag>
+            <tag> Spine </tag>
             
         </tags>
         
@@ -673,8 +820,8 @@
 <h3 id="Large-image"><a href="#Large-image" class="headerlink" title="Large image"></a>Large image</h3><p><img src="https://guides.github.com/activities/hello-world/branching.png" alt=""></p>
 <h3 id="Definition-lists-can-be-used-with-HTML-syntax"><a href="#Definition-lists-can-be-used-with-HTML-syntax" class="headerlink" title="Definition lists can be used with HTML syntax."></a>Definition lists can be used with HTML syntax.</h3><dl><br><dt>Name</dt><br><dd>Godzilla</dd><br><dt>Born</dt><br><dd>1952</dd><br><dt>Birthplace</dt><br><dd>Japan</dd><br><dt>Color</dt><br><dd>Green</dd><br></dl>
 
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Long, single-line code blocks should not wrap. They should horizontally scroll if they are too long. This line should be long enough to demonstrate this.</div></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">The final element.</div></pre></td></tr></table></figure>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Long, single-<span class="built_in">line</span> code blocks should <span class="keyword">not</span> <span class="keyword">wrap</span>. They should horizontally scroll <span class="keyword">if</span> they are too <span class="keyword">long</span>. This <span class="built_in">line</span> should be <span class="keyword">long</span> enough <span class="built_in">to</span> demonstrate this.</div></pre></td></tr></table></figure>
+<figure class="highlight actionscript"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">The <span class="keyword">final</span> element.</div></pre></td></tr></table></figure>
 ]]></content>
       
         <categories>
